@@ -2,12 +2,49 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { signUp } from "@/lib/auth/auth-client"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 
  
  export default function SignUp() {
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");   
+    const [password, setPassword] = useState("");
+
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const router = useRouter();
+
+    async function handleSubmit(e: React.FormEvent) {
+        e.preventDefault();
+
+        setError("");
+        setLoading(true);
+
+        try {
+            const result = await signUp.email({
+                name,
+                email,
+                password
+            });
+
+            if (result.error) {
+                setError(result.error.message ?? "Failed to sign up");
+            } else {
+                router.push("/dashboard");
+            }
+        } catch (err) {
+            setError("An unexpected error occurred");
+        } finally {
+            setLoading(false);
+        }
+    }
+
     return (
         <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-white">
             <Card className="w-full max-w-md border-gray-200 shadow-lg">
@@ -18,14 +55,21 @@ import Link from "next/link"
                     </CardDescription>
                 </CardHeader>
 
-                <form className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <CardContent className="space-y-4">
+                        {error && (
+                            <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+                                {error}
+                            </div>
+                        )}
                         <div className="space-y-2">
                             <Label htmlFor="name" className="text-gray-700">Name</Label>
                             <Input 
                                 id="name" 
                                 type="text" 
-                                placeholder="John Doe" 
+                                placeholder="John Doe"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
                                 required 
                                 className="border-gray-300 focus:border-primary focus:ring-primary"
                             />
@@ -35,7 +79,9 @@ import Link from "next/link"
                             <Input 
                                 id="email" 
                                 type="email" 
-                                placeholder="john@example.com" 
+                                placeholder="john@example.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 required
                                 className="border-gray-300 focus:border-primary focus:ring-primary"
                             />
@@ -45,6 +91,8 @@ import Link from "next/link"
                             <Input
                                 id="password" 
                                 type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 required 
                                 minLength={8}
                                 className="border-gray-300 focus:border-primary focus:ring-primary"
@@ -55,8 +103,9 @@ import Link from "next/link"
                         <Button 
                             type="submit"
                             className="w-full bg-primary hover:bg-primary/90"
+                            disabled={loading}
                         >
-                            Sign Up
+                            {loading ? "Creating account..." : "Sign Up"}
                         </Button>
                         <p>
                             Already have an account? 
