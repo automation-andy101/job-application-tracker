@@ -5,7 +5,7 @@ import { Award, Calendar, CheckCircle2, Mic, MoreHorizontal, Trash2, XCircle } f
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
-import CreateJobApplicationDialog from "./CreateJobApplicationDialog";
+import CreateJobApplicationDialog from "./create-job-dialog";
 
 interface KanbanBoardProps {
     board: Board;
