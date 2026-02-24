@@ -1,4 +1,4 @@
-"user server";
+"use server";
 
 import { getSession } from "../auth/auth";
 import connectDB from "../db";
@@ -77,9 +77,16 @@ export async function createJobApplication(data: JobApplicationData) {
         jobUrl,
         columnId,
         boardId,
+        userId: session.user.id,
         tags: tags || [],
         description,
         status: "applied",
         order: maxOrder ? maxOrder.order + 1 : 0
     })
+
+    await Column.findByIdAndUpdate(columnId, {
+        $push: { jobApplication: jobApplication._id },
+    });
+
+    return { data: JSON.parse(JSON.stringify(jobApplication)) };
 }
