@@ -4,24 +4,34 @@ import connectDB from "@/lib/db";
 import { Board } from "@/lib/models";
 import { redirect } from "next/navigation";
 
+async function getBoard(userId: string) {
+
+  await connectDB();
+
+  const boardDoc = await Board.findOne({
+    userId: userId,
+    name: "Job Hunt",
+  }).populate({
+    path: "columns",
+    populate: {
+      path: "jobApplications",
+    },
+  });
+
+  if (!boardDoc) return null;
+
+  const board = JSON.parse(JSON.stringify(boardDoc));
+
+  return board;
+}
 
 export default async function Dashboard() {
     const session = await getSession();
+    const board = await getBoard(session?.user.id ?? "");
 
     if (!session?.user) {
         redirect("/sign-up");
     }
-
-    await connectDB();
-
-    const board = await Board.findOne({
-        userId: session.user.id,
-        name: "Job Hunt"
-    }).populate({
-        path: "columns",
-    });
-
-    console.log(board);
     
     return (
         <div className="min-h-screen bg-white">
@@ -33,7 +43,7 @@ export default async function Dashboard() {
                     </p>
 
                     <KanbanBoard 
-                        board={JSON.parse(JSON.stringify(board))} 
+                        board={board} 
                         userId={session.user.id} 
                     />
                 </div>
