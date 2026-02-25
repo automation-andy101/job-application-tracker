@@ -3,29 +3,31 @@ import { getSession } from "@/lib/auth/auth";
 import connectDB from "@/lib/db";
 import { Board } from "@/lib/models";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 async function getBoard(userId: string) {
+    "use cache";
 
-  await connectDB();
+    await connectDB();
 
-  const boardDoc = await Board.findOne({
-    userId: userId,
-    name: "Job Hunt",
-  }).populate({
-    path: "columns",
-    populate: {
-      path: "jobApplications",
-    },
-  });
+    const boardDoc = await Board.findOne({
+        userId: userId,
+        name: "Job Hunt",
+    }).populate({
+        path: "columns",
+        populate: {
+        path: "jobApplications",
+        },
+    });
 
-  if (!boardDoc) return null;
+    if (!boardDoc) return null;
 
-  const board = JSON.parse(JSON.stringify(boardDoc));
+    const board = JSON.parse(JSON.stringify(boardDoc));
 
-  return board;
+    return board;
 }
 
-export default async function Dashboard() {
+async function DashboardPageWrapper() {
     const session = await getSession();
     const board = await getBoard(session?.user.id ?? "");
 
@@ -50,4 +52,12 @@ export default async function Dashboard() {
             </div>
         </div>
     )
+}
+
+export default async function Dashboard() {
+    return (
+        <Suspense fallback={<p>Loading...</p>}>
+            <DashboardPageWrapper />
+        </Suspense>
+    )   
 }
