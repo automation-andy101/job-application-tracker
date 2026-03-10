@@ -59,12 +59,15 @@ export default function CreateJobApplicationDialog({
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline">
+                <Button
+                    variant="outline"
+                    className="w-full mb-4 justify-start text-muted-foreground border-dashed border-2 hover:border-solid hover:bg-muted/50"
+                >
+                    <Plus className="mr-2 h-4 w-4" />
                     Add Job
-                    <Plus />
                 </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-2xl">
                 <DialogHeader>
                     <DialogTitle>Add Job Application</DialogTitle>
                     <DialogDescription>Track a new job application</DialogDescription>

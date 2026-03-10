@@ -1,9 +1,15 @@
+"use client"
+
 import { JobApplication, Column } from "@/lib/models/models.types";
 import { Card, CardContent } from "./ui/card";
-import { Edit2, ExternalLink, MoreVertical, Trash2 } from "lucide-react";
+import { Edit2, ExternalLink, MoreVertical, Plus, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { updateJobApplication } from "@/lib/actions/job-applications";
+import { Input } from "./ui/input";
+import { Textarea } from "./ui/textarea";
+import { useState } from "react";
 
 interface JobApplicationProps {
     job: JobApplication;
@@ -14,12 +20,42 @@ export default function JobApplicationCard({
     job, 
     columns 
 }: JobApplicationProps) {
+    const [isEditing, setIsEditing] = useState(false);
+    const [formData, setFormData] = useState({
+        company: job.company,
+        position: job.position,
+        location: job.location || "",
+        notes: job.notes || "",
+        salary: job.salary || "",
+        jobUrl: job.jobUrl || "",
+        columnId: job.columnId || "",
+        tags: job.tags?.join(", ") || "",
+        description: job.description || "",
+    });
 
     async function handleMove(newColumnId: string) {
         try {
             const result = await updateJobApplication(job._id, {
                 columnId: newColumnId
             });
+        } catch (err) {
+            console.error("Failed to move job application: ", err);
+        }
+    }
+
+    async function handleUpdate() {
+        try {
+            const result = await updateJobApplication(job._id, {
+                ...formData,
+                tags: formData.tags
+                    .split(",")
+                    .map((tag) => tag.trim())
+                    .filter((tag) => tag.length > 0),
+            });
+
+            if (!result.error) {
+                setIsEditing(false);
+            }
         } catch (err) {
             console.error("Failed to move job application: ", err);
         }
@@ -73,7 +109,7 @@ export default function JobApplicationCard({
                                 </DropdownMenuTrigger>
 
                                 <DropdownMenuContent align="end">
-                                    <DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setIsEditing(true)}>
                                         <Edit2 className="mr-2 h-4 w-4" />
                                         Edit
                                     </DropdownMenuItem>
@@ -97,6 +133,111 @@ export default function JobApplicationCard({
                     </div>
                 </CardContent>
             </Card>
+
+            <Dialog open={isEditing} onOpenChange={setIsEditing}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add Job Application</DialogTitle>
+                        <DialogDescription>Track a new job application</DialogDescription>
+                    </DialogHeader>
+                    <form className="space-y-4" onSubmit={handleUpdate}>
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label htmlFor="company">Company *</label>
+                                    <Input
+                                        id="company" 
+                                        required 
+                                        value={formData.company}
+                                        onChange={(e) => setFormData({ ...formData, company: e.target.value })} 
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="position">Position *</label>
+                                    <Input 
+                                        id="position" 
+                                        required
+                                        value={formData.position}
+                                        onChange={(e) => setFormData({ ...formData, position: e.target.value })} 
+                                    />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label htmlFor="location">Location</label>
+                                    <Input 
+                                        id="location" 
+                                        value={formData.location}
+                                        onChange={(e) => setFormData({ ...formData, location: e.target.value })} 
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="salary">Salary</label>
+                                    <Input 
+                                        id="salary" 
+                                        placeholder="e.g. £100k - £150k" 
+                                        value={formData.salary}
+                                        onChange={(e) => setFormData({ ...formData, salary: e.target.value })} 
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label htmlFor="jobUrl">Job URL</label>
+                                <Input 
+                                    id="jobUrl" 
+                                    placeholder="https://..." 
+                                    value={formData.jobUrl}
+                                    onChange={(e) => setFormData({ ...formData, jobUrl: e.target.value })} 
+                                />
+                            </div>
+
+                            <div>
+                                <label htmlFor="tags">Tags (comma-separated)</label>
+                                <Input 
+                                    id="tags" 
+                                    placeholder="React, Tailwind, High Pay" 
+                                    value={formData.tags}
+                                    onChange={(e) => setFormData({ ...formData, tags: e.target.value })} 
+                                />
+                            </div>
+
+                            <div>
+                                <label htmlFor="description">Description</label>
+                                <Textarea 
+                                    id="description" 
+                                    rows={3}
+                                    placeholder="A brief description of the role..." 
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })} 
+                                />
+                            </div>
+
+                            <div>
+                                <label htmlFor="notes">Notes</label>
+                                <Textarea 
+                                    id="notes" 
+                                    rows={4}
+                                    value={formData.notes}
+                                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })} 
+                                />
+                            </div>
+                        </div>
+
+                        <DialogFooter>
+                            <Button 
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsEditing(false)}
+                            >
+                                Cancel
+                            </Button>
+                            <Button type="submit">
+                                Save Changes
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
         </>
     )
 }
