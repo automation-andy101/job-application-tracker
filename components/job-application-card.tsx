@@ -43,7 +43,9 @@ export default function JobApplicationCard({
         }
     }
 
-    async function handleUpdate() {
+    async function handleUpdate(e: React.FormEvent) {
+        e.preventDefault();
+        
         try {
             const result = await updateJobApplication(job._id, {
                 ...formData,
